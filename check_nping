@@ -1,0 +1,98 @@
+#!/usr/bin/python2
+# -*- coding: utf-8 -*-
+#~ Author: Marco Antonio Suárez Peña
+#~ License: GPLv2
+#~ Version: 1.0
+
+import sys
+import os
+import argparse
+from subprocess import Popen, PIPE
+
+
+def main():
+    """
+    nping a host:
+    0:  All is OK
+    1:  Connection is slow
+    2:  No connection or really slow
+    3:  No nping command is in the system or something bad happend
+    
+    """
+    parser = argparse.ArgumentParser(description = "Check with nping\
+        if HOST is alive routing through a router MAC.")
+    parser.add_argument("-H",
+        required = True,
+        help = "the host to check",
+        dest = "hostname",
+        metavar = "<IP or URI>")
+    parser.add_argument("-M",
+        required = True,
+        help = "the mac address of the gateway",
+        dest = "mac",
+        metavar = "<mac>")
+    parser.add_argument("-w",
+        type = float,
+        default = "3000",
+        help = "the WARNING time (Default: 3000ms)",
+        dest = "warning",
+        metavar = "<msec>")
+    parser.add_argument("-c",
+        type = float,
+        default = "6000",
+        help = "the CRITICAL time (Default: 5000ms)",
+        dest = "critical",
+        metavar = "<msec>")
+    parser.add_argument("-C",
+        type = int,
+        default = "5",
+        help = "Ping count",
+        dest = "count",
+        metavar = "<times>")
+    args = parser.parse_args()
+
+    try:
+        nping = Popen(["nping", args.hostname, "-c", str(args.count), "--dest-mac", args.mac, "--icmp", "-v0", "-delay", "10s", "--privileged", "--hide-sent"], stdout = PIPE, stderr = PIPE)
+    except OSError:
+        sys.stdout.write("nping not found!")
+        sys.exit((3))
+
+    exit_code = os.waitpid(nping.pid, 0)
+    output = nping.communicate()
+    
+    if output[1]:
+        sys.stdout.write(str(output[1]))
+        sys.exit((3))
+
+    try:
+        pinglines = str(output[0]).splitlines()
+	
+	for pingline in pinglines:
+		index = pingline.find("Avg rtt:")
+
+		if index >= 0:
+			time = pingline[index+9:]
+			break
+	
+	pingtime = float(time[:-2])
+
+    except IndexError:
+        pass
+    
+    if exit_code[1] == 0:
+	if pingtime >= float(args.critical):
+		sys.stdout.write("CRITICAL - Average ping to " + str(args.hostname) + " is " + str(pingtime) + " ms")
+		sys.exit(2)
+	else:
+		if pingtime >= float(args.warning):
+			sys.stdout.write("WARNING - Average ping to " + str(args.hostname) +  " is " + str(pingtime) + " ms")
+			sys.exit(1)
+		else:
+			sys.stdout.write("OK - Average ping to " + str(args.hostname) +  " is " + str(pingtime) + " ms")
+			sys.exit(0)
+    else:
+        sys.exit(3)
+
+if __name__ == '__main__':
+    main()
+

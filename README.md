@@ -20,8 +20,8 @@ Usage:
 1) Place check_nping file in libexec folder (or other plugins folder)
 
 2) Create the command in Nagios:
-```
-#$ARG1$ Host to pingtxt
+```sh
+#$ARG1$ Host to ping
 #$ARG2$ MAC address of the gateway to check
 #$ARG3$ Ping count
 #$ARG4$ Warning value in ms
@@ -35,7 +35,7 @@ define command{
 
 3) Use the command:
 
-```txt
+```sh
 define service{
         use                     generic-service
         host_name               ROUTER-90-1

@@ -82,6 +82,12 @@ def main():
 		pingtime = float(time[:-2])
 
 
+	if time = "":
+                sys.stdout.write("CRITICAL - Line with average rate not found")
+                sys.exit(3)
+        else
+                pingtime = float(time[:-2])
+
     except IndexError:
         pass
     

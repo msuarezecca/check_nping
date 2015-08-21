@@ -65,6 +65,7 @@ def main():
         sys.exit((3))
 
     try:
+	time = ""
         pinglines = str(output[0]).splitlines()
 	
 	for pingline in pinglines:
@@ -74,7 +75,12 @@ def main():
 			time = pingline[index+9:]
 			break
 	
-	pingtime = float(time[:-2])
+	if time = "":
+		sys.stdout.write("CRITICAL - Line with average rate not found")
+		sys.exit(3)
+	else
+		pingtime = float(time[:-2])
+
 
     except IndexError:
         pass
